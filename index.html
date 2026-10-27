@@ -134,7 +134,7 @@ function makeRow(t){
   if(t.note)info.append(el('span','note',t.note));
   const vehicle=el('span','vehicle-line','Vehicle ID');vehicle.append(el('span','vehicle-id',t.id),el('span','badge',labels[t.status]));info.append(vehicle);identity.append(step,info);main.append(identity);
   const actions=el('span','row-actions'),tag=el('button','tag-button',t.tagged?'Tagged':'Tag');tag.type='button';tag.dataset.id=t.id;tag.dataset.action='tag';tag.disabled=busy||!loaded;tag.setAttribute('aria-pressed',String(t.tagged));tag.setAttribute('aria-label',`${t.tagged?'Untag':'Tag'} trailer ${t.id}`);actions.append(tag);
-  if(isAdmin){const remove=el('button','delete-button','×');remove.type='button';remove.dataset.id=t.id;remove.dataset.action='delete';remove.disabled=busy||!loaded||rowActions.length>0;remove.setAttribute('aria-label',`Delete trailer ${t.id}`);remove.title='Delete trailer';actions.append(remove);}
+  if(isAdmin){const remove=el('button','delete-button','Delete');remove.type='button';remove.dataset.id=t.id;remove.dataset.action='delete';remove.disabled=busy||!loaded||rowActions.length>0;remove.setAttribute('aria-label',`Delete trailer ${t.id}`);remove.title='Delete trailer';actions.append(remove);}
   row.append(main,actions);
   if(t.status!=='waiting'||t._pending){const time=el('span','timing',timing(t));time.dataset.id=t.id;row.append(time);}
   row.dataset.id=t.id;return row;
