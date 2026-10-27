@@ -29,11 +29,11 @@ dialog::backdrop{background:#102e2c70}dialog h2{font-size:22px;letter-spacing:-.
 .row-main{display:block;min-height:106px;padding:17px 10px 17px 17px}.row{grid-template-columns:minmax(0,1fr) 68px;gap:8px}.identity{align-items:center;gap:15px}.step-icon{width:30px;height:30px;border-radius:8px;font-size:20px;font-weight:700}.trailer-info{display:block}.topline{display:flex;justify-content:space-between;align-items:baseline;gap:10px}.location{font-size:23px;font-weight:750;letter-spacing:-.03em;overflow-wrap:anywhere}.topline .carrier{font-size:12px;margin:0;letter-spacing:.04em;text-align:right;max-width:40%}.vehicle-line{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px;font-size:13px;color:var(--muted);margin-top:5px}.vehicle-id{font-size:17px;font-weight:650;overflow-wrap:anywhere;color:var(--ink)}.note{font-size:13px;margin-top:5px}.vehicle-line .badge{display:inline;border:0;padding:0;margin-left:3px;background:transparent;font-size:11px;text-transform:uppercase}.moved .location,.moved .vehicle-id{text-decoration:line-through;color:#6a7e71}.timing{grid-column:1/-1;padding:9px 15px 11px 62px;border-top:1px solid #193b3512;font-size:11px;line-height:1.6;color:var(--muted);overflow-wrap:anywhere}.timing strong{color:var(--ink);font-weight:650}.board-notice{padding:14px;border:1px solid #e0c998;border-radius:9px;background:#fff5d7;font-size:13px;margin-top:20px;line-height:1.6}.board-notice button,.board-notice a{margin-left:10px;padding:8px 12px;border:1px solid #b5bc9a;border-radius:7px;background:white;color:var(--ink)}button:disabled{cursor:wait;opacity:.55}#reset-list:disabled{cursor:default}.entry-fields:disabled{opacity:.6}@media(max-width:480px){.row-main{display:block;min-height:105px;padding:15px 8px 15px 12px}.row{grid-template-columns:minmax(0,1fr) 61px;gap:6px}.identity{gap:11px}.step-icon{width:25px;height:25px;font-size:17px}.location{font-size:20px}.topline .carrier{font-size:10px}.vehicle-line{font-size:12px;gap:5px}.vehicle-id{font-size:15px}.timing{padding-left:48px;font-size:11px}.vehicle-line .badge{margin-left:0;font-size:10px}.board-column-head{font-size:10px;padding-left:12px}}@media(max-width:350px){.row-main .badge{margin-left:0}.vehicle-id{font-size:14px}.identity{gap:8px}.topline{gap:6px}}
 @media(max-width:480px){.masthead small{display:block;font-size:10px}}
 .topline .carrier{font-weight:750}
-.admin-sign-in{color:white;text-decoration:none;border:1px solid #ffffff66;border-radius:7px;min-height:40px;padding:9px 12px;font-size:12px;font-weight:650;white-space:nowrap}
+.admin-sign-in{background:transparent;cursor:pointer;color:white;text-decoration:none;border:1px solid #ffffff66;border-radius:7px;min-height:40px;padding:9px 12px;font-size:12px;font-weight:650;white-space:nowrap}
 </style>
 </head>
 <body>
-<header class="masthead"><div class="mast-inner"><div class="brand"><svg width="27" height="23" viewBox="0 0 27 23" fill="none" aria-hidden="true"><rect x="1" y="3" width="22" height="13" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M23 13h3v6h-5M4 16v3" stroke="currentColor" stroke-width="1.7"/><circle cx="8" cy="18" r="2.5" fill="currentColor"/><circle cx="17" cy="18" r="2.5" fill="currentColor"/></svg>Shuttle moves board</div><small id="access-role">TEAM ACCESS</small><a class="admin-sign-in" id="admin-sign-in" href="https://yard-moves-trailer-list.mellow-tapir-2687.chatgpt.site/signin-with-chatgpt?return_to=%2F" target="_top">Admin controls</a></div></header>
+<header class="masthead"><div class="mast-inner"><div class="brand"><svg width="27" height="23" viewBox="0 0 27 23" fill="none" aria-hidden="true"><rect x="1" y="3" width="22" height="13" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M23 13h3v6h-5M4 16v3" stroke="currentColor" stroke-width="1.7"/><circle cx="8" cy="18" r="2.5" fill="currentColor"/><circle cx="17" cy="18" r="2.5" fill="currentColor"/></svg>Shuttle moves board</div><small id="access-role">TEAM ACCESS</small><button class="admin-sign-in" id="admin-sign-in" type="button">Admin controls</button></div></header>
 <main class="shell">
 <section class="hero"><div><p class="eyebrow">A clearer yard. One move at a time.</p><h1>Shuttle moves board</h1><p class="lede">Find the trailer, check its slip, and tap the row to track your move. Tag any row to highlight it yellow.</p></div><button class="reset-button" id="reset-list" type="button" hidden>Reset list</button></section>
 <section class="stats" aria-label="Trailer move totals"><div class="stat"><span>Total trailers</span><strong id="total">—</strong></div><div class="stat"><span>Waiting</span><strong id="waiting">—</strong></div><div class="stat in-progress"><span>In progress</span><strong id="active">—</strong></div><div class="stat complete"><span>Moved</span><strong id="moved">—</strong></div><div class="meter" role="progressbar" aria-label="Trailers moved" aria-valuemin="0" aria-valuenow="0" aria-valuemax="14"><div class="meter-fill" id="meter-fill"></div></div></section>
@@ -44,17 +44,18 @@ dialog::backdrop{background:#102e2c70}dialog h2{font-size:22px;letter-spacing:-.
 <section aria-label="Trailer list"><div class="list-head"><h2>Your trailers</h2><span class="count" id="shown-count">Loading…</span></div><div class="tools"><input class="search" id="search" type="search" placeholder="Search trailer or slip…" aria-label="Search by name, vehicle ID, or parking slip"><select id="filter" aria-label="Filter trailers"><option value="all">All trailers</option><option value="waiting">Waiting</option><option value="in-progress">In progress</option><option value="moved">Moved</option><option value="tagged">Tagged</option></select></div>
 <div class="list-shell"><div class="board-column-head" aria-hidden="true">Location &amp; vehicle ID <span>Actions</span></div><ul id="trailers" aria-label="Tap a trailer to change its status"></ul><div id="empty" class="empty">Loading the shared board…</div></div><p class="list-foot" id="progress-note">Tap once to start. Tap again to mark moved and cross it out.</p></section>
 </div>
-<div id="board-notice" class="board-notice" hidden><span id="board-error" role="alert"></span><button id="retry-load" type="button">Retry</button><a href="https://yard-moves-trailer-list.mellow-tapir-2687.chatgpt.site/signin-with-chatgpt?return_to=%2F" target="_top" id="sign-in" hidden>Sign in</a></div><footer class="footer"><span id="save-note">Shared board · Everyone can add trailers and update moves.</span><span>Tap a row to update its move status.</span></footer>
+<div id="board-notice" class="board-notice" hidden><span id="board-error" role="alert"></span><button id="retry-load" type="button">Retry</button><button id="sign-in" type="button" hidden>Unlock admin</button></div><footer class="footer"><span id="save-note">Shared board · Everyone can add trailers and update moves.</span><span>Tap a row to update its move status.</span></footer>
 </main><div id="toast" class="toast" role="status" aria-live="polite"></div>
 <div id="undo-banner" class="undo-banner" hidden><span id="undo-message" role="status"></span><button id="undo-delete" type="button">Undo</button></div>
 <dialog id="delete-dialog" aria-labelledby="delete-title" aria-describedby="delete-description"><form method="dialog"><h2 id="delete-title">Delete trailer?</h2><p id="delete-description"></p><div class="dialog-actions"><button value="cancel" class="cancel-button" autofocus>Cancel</button><button id="confirm-delete" value="delete" class="danger-button">Delete trailer</button></div></form></dialog>
+<dialog id="admin-dialog" aria-labelledby="admin-title"><form id="admin-form"><h2 id="admin-title">Admin controls</h2><p>Enter your private admin code to unlock reset and deletion.</p><label class="field">Admin code<input id="admin-code" type="password" required autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="80"></label><p id="admin-error" class="message error" role="alert"></p><div class="dialog-actions"><button id="admin-cancel" class="cancel-button" type="button">Cancel</button><button id="admin-unlock" class="primary" type="submit" style="width:auto;padding:10px 16px">Unlock</button></div></form></dialog>
 <noscript><div class="script-warning">Interactive controls need JavaScript. Open the website in Safari or Chrome; a file preview may show the page without running the app.</div></noscript>
 <script>
 'use strict';
 const states=['waiting','in-progress','moved'];
 const labels={waiting:'Waiting','in-progress':'In progress',moved:'Moved'};
 const list=document.getElementById('trailers'),form=document.getElementById('add-trailer'),message=document.getElementById('form-message'),dialog=document.getElementById('delete-dialog');
-let trailers=[],isAdmin=false,loaded=false,busy=false,version=-1,lastDeletion=null,pendingDeletion=null,serverTrailers=[],rowActions=[],rowSending=false,loading=false,toastTimer,undoTimer,undoExpiresAt=0;
+let adminKey='',trailers=[],isAdmin=false,loaded=false,busy=false,version=-1,lastDeletion=null,pendingDeletion=null,serverTrailers=[],rowActions=[],rowSending=false,loading=false,toastTimer,undoTimer,undoExpiresAt=0;
 function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;}
 function announce(text){document.getElementById('toast').textContent=text;clearTimeout(toastTimer);toastTimer=setTimeout(()=>document.getElementById('toast').textContent='',3000);}
 function report(text,status){document.getElementById('board-notice').hidden=!text;document.getElementById('board-error').textContent=text;document.getElementById('sign-in').hidden=status!==401;}
@@ -73,7 +74,8 @@ function showUndo(records,text){
 }
 function expireUndo(){if(undoExpiresAt&&Date.now()>=undoExpiresAt)clearUndo();}
 async function api(input){
- const response=await fetch('https://yard-moves-trailer-list.mellow-tapir-2687.chatgpt.site/api/board',input?{credentials:'omit',method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input),cache:'no-store'}:{credentials:'omit',cache:'no-store'});
+ const headers={...(input?{'Content-Type':'application/json'}:{}),...(adminKey?{'X-Shuttle-Admin-Key':adminKey}:{})};
+ const response=await fetch('https://yard-moves-trailer-list.mellow-tapir-2687.chatgpt.site/api/board',{credentials:'omit',method:input?'POST':'GET',headers,...(input?{body:JSON.stringify(input)}:{}),cache:'no-store'});
  let data;try{data=await response.json();}catch{throw Object.assign(new Error('Open the hosted Shuttle moves board to use shared records and admin permissions.'),{status:response.status});}
  if(!response.ok)throw Object.assign(new Error(data.error||'Could not update the board.'),{status:response.status});return data;
 }
@@ -108,7 +110,7 @@ async function loadBoard(initialLoad=false){
   if(!data.initialized){accept(data);report('The admin needs to open this board once to finish setup.');return;}
   if(data.version!==version||!loaded)accept(data);report('');
   document.getElementById('save-note').textContent='Shared board · Updates save automatically. Times use your device’s time zone.';
- }catch(error){report(error.message,error.status);if(initialLoad){document.getElementById('empty').hidden=false;document.getElementById('empty').textContent='The board could not load. Sign in or retry below.';}}finally{loading=false;}
+ }catch(error){report(error.message,error.status);if(initialLoad){document.getElementById('empty').hidden=false;document.getElementById('empty').textContent='The board could not load. Retry below.';}}finally{loading=false;}
 }
 function duration(ms){const seconds=Math.max(0,Math.floor(ms/1000)),h=Math.floor(seconds/3600),m=Math.floor(seconds%3600/60),s=seconds%60;return (h?h+'h ':'')+(m||h?m+'m ':'')+s+'s';}
 const dateFormat=new Intl.DateTimeFormat(undefined,{hour:'numeric',minute:'2-digit',second:'2-digit'});
@@ -163,7 +165,8 @@ function render(focusId,focusAction){
  const reset=document.getElementById('reset-list');reset.hidden=!isAdmin;reset.disabled=busy||rowActions.length>0||!loaded||trailers.length===0;
  document.getElementById('entry-fields').disabled=busy||rowActions.length>0||!loaded;
  document.getElementById('access-role').textContent=isAdmin?'ADMIN':'TEAM ACCESS';
- document.getElementById('admin-sign-in').hidden=isAdmin;
+ document.getElementById('admin-sign-in').hidden=false;
+ document.getElementById('admin-sign-in').textContent=isAdmin?'Lock admin':'Admin controls';
  document.getElementById('shown-count').textContent=`${visible.length} of ${trailers.length} shown`;
  const counts={waiting:0,'in-progress':0,moved:0};for(const t of trailers)counts[t.status]++;const moved=counts.moved;
  document.getElementById('total').textContent=trailers.length;
@@ -216,6 +219,22 @@ document.getElementById('retry-load').addEventListener('click',()=>loadBoard(tru
 setInterval(()=>{if(document.hidden)return;const byId=new Map(trailers.map(t=>[t.id,t]));for(const n of list.querySelectorAll('.timing')){const t=byId.get(n.dataset.id);if(t?.status==='in-progress')n.textContent=timing(t);}},1000);
 setInterval(()=>{if(!document.hidden&&!dialog.open)loadBoard();},10000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){expireUndo();loadBoard();}});
+const adminDialog=document.getElementById('admin-dialog'),adminInput=document.getElementById('admin-code');
+function openAdmin(){
+ if(isAdmin){adminKey='';isAdmin=false;clearUndo();render();announce('Admin controls locked.');return;}
+ document.getElementById('admin-error').textContent='';adminInput.value='';adminDialog.showModal();adminInput.focus();
+}
+document.getElementById('admin-sign-in').addEventListener('click',openAdmin);
+document.getElementById('sign-in').addEventListener('click',openAdmin);
+document.getElementById('admin-cancel').addEventListener('click',()=>adminDialog.close());
+adminDialog.addEventListener('close',()=>{adminInput.value='';});
+document.getElementById('admin-form').addEventListener('submit',async event=>{
+ event.preventDefault();const button=document.getElementById('admin-unlock');if(button.disabled)return;
+ button.disabled=true;const previous=adminKey;adminKey=adminInput.value;
+ try{const data=await api();if(!data.isAdmin)throw new Error('Incorrect admin code.');accept(data);adminDialog.close();announce('Admin controls unlocked.');}
+ catch(error){adminKey=previous;document.getElementById('admin-error').textContent=error.message;}
+ finally{button.disabled=false;}
+});
 loadBoard(true);
 
 </script>
