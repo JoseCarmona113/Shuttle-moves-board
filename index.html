@@ -30,6 +30,7 @@ dialog::backdrop{background:#102e2c70}dialog h2{font-size:22px;letter-spacing:-.
 @media(max-width:480px){.masthead small{display:block;font-size:10px}}
 .topline .carrier{font-weight:750}
 .admin-sign-in{background:transparent;cursor:pointer;color:white;text-decoration:none;border:1px solid #ffffff66;border-radius:7px;min-height:40px;padding:9px 12px;font-size:12px;font-weight:650;white-space:nowrap}
+.name-button{border:0;background:transparent;color:var(--green);font-size:12px;font-weight:650;min-height:44px;padding:8px 0;text-align:left}
 </style>
 </head>
 <body>
@@ -44,22 +45,30 @@ dialog::backdrop{background:#102e2c70}dialog h2{font-size:22px;letter-spacing:-.
 <section aria-label="Trailer list"><div class="list-head"><h2>Your trailers</h2><span class="count" id="shown-count">Loading…</span></div><div class="tools"><input class="search" id="search" type="search" placeholder="Search trailer or slip…" aria-label="Search by name, vehicle ID, or parking slip"><select id="filter" aria-label="Filter trailers"><option value="all">All trailers</option><option value="waiting">Waiting</option><option value="in-progress">In progress</option><option value="moved">Moved</option><option value="tagged">Tagged</option></select></div>
 <div class="list-shell"><div class="board-column-head" aria-hidden="true">Location &amp; vehicle ID <span>Actions</span></div><ul id="trailers" aria-label="Tap a trailer to change its status"></ul><div id="empty" class="empty">Loading the shared board…</div></div><p class="list-foot" id="progress-note">Tap once to start. Tap again to mark moved and cross it out.</p></section>
 </div>
-<div id="board-notice" class="board-notice" hidden><span id="board-error" role="alert"></span><button id="retry-load" type="button">Retry</button><button id="sign-in" type="button" hidden>Unlock admin</button></div><footer class="footer"><span id="save-note">Shared board · Everyone can add trailers and update moves.</span><span>Tap a row to update its move status.</span></footer>
+<div id="board-notice" class="board-notice" hidden><span id="board-error" role="alert"></span><button id="retry-load" type="button">Retry</button><button id="sign-in" type="button" hidden>Unlock admin</button></div><footer class="footer"><span id="save-note">Shared board · Everyone can add trailers and update moves.</span><button id="change-driver" class="name-button" type="button" disabled>Set your name</button></footer>
 </main><div id="toast" class="toast" role="status" aria-live="polite"></div>
 <div id="undo-banner" class="undo-banner" hidden><span id="undo-message" role="status"></span><button id="undo-delete" type="button">Undo</button></div>
 <dialog id="delete-dialog" aria-labelledby="delete-title" aria-describedby="delete-description"><form method="dialog"><h2 id="delete-title">Delete trailer?</h2><p id="delete-description"></p><div class="dialog-actions"><button value="cancel" class="cancel-button" autofocus>Cancel</button><button id="confirm-delete" value="delete" class="danger-button">Delete trailer</button></div></form></dialog>
 <dialog id="admin-dialog" aria-labelledby="admin-title"><form id="admin-form"><h2 id="admin-title">Admin controls</h2><p>Enter your private admin code to unlock reset and deletion.</p><label class="field">Admin code<input id="admin-code" type="password" required autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="80"></label><p id="admin-error" class="message error" role="alert"></p><div class="dialog-actions"><button id="admin-cancel" class="cancel-button" type="button">Cancel</button><button id="admin-unlock" class="primary" type="submit" style="width:auto;padding:10px 16px">Unlock</button></div></form></dialog>
-<dialog id="driver-dialog" aria-labelledby="driver-title"><form id="driver-form"><h2 id="driver-title">Who is moving trailers?</h2><p>Enter your name before using the board. Your name will appear on the moves you pick up.</p><label class="field">Your name<input id="driver-name" required maxlength="60" autocomplete="name" placeholder="Enter your name"></label><p id="driver-error" class="message error" role="alert"></p><button class="primary" type="submit">Continue to board</button></form></dialog>
+<dialog id="driver-dialog" aria-labelledby="driver-title"><form id="driver-form"><h2 id="driver-title">Who is moving trailers?</h2><p>Enter your name once on this device. Your name will appear on the moves you pick up. You can change it below the board.</p><label class="field">Your name<input id="driver-name" required maxlength="60" autocomplete="name" placeholder="Enter your name"></label><p id="driver-error" class="message error" role="alert"></p><button class="primary" type="submit">Continue to board</button></form></dialog>
 <noscript><div class="script-warning">Interactive controls need JavaScript. Open the website in Safari or Chrome; a file preview may show the page without running the app.</div></noscript>
 <script>
 'use strict';
+const driverStorageKey='shuttle-driver-name';
 let driverName='';
+try{driverName=(localStorage.getItem(driverStorageKey)||'').trim().slice(0,60);}catch{}
 const driverDialog=document.getElementById('driver-dialog'),driverInput=document.getElementById('driver-name');
-driverDialog.addEventListener('cancel',event=>event.preventDefault());
+const driverButton=document.getElementById('change-driver');
+function updateDriverButton(){driverButton.textContent=driverName?`Driver: ${driverName} · Change name`:'Set your name';driverButton.disabled=!driverName||busy||rowActions.length>0;}
+function askDriver(){document.getElementById('driver-error').textContent='';driverInput.value=driverName;driverDialog.showModal();driverInput.focus();}
+driverButton.addEventListener('click',()=>{if(!busy&&!rowActions.length)askDriver();});
+driverDialog.addEventListener('cancel',event=>{if(!driverName)event.preventDefault();});
 document.getElementById('driver-form').addEventListener('submit',event=>{
  event.preventDefault();const name=driverInput.value.trim().slice(0,60);
  if(!name){document.getElementById('driver-error').textContent='Enter your name to continue.';driverInput.focus();return;}
- driverName=name;driverDialog.close();loadBoard(true);
+ driverName=name;
+ try{localStorage.setItem(driverStorageKey,name);}catch{announce('Name set for this visit. Browser storage is unavailable.');}
+ driverDialog.close();updateDriverButton();loadBoard(true);
 });
 const states=['waiting','in-progress','moved'];
 const labels={waiting:'Waiting','in-progress':'In progress',moved:'Moved'};
@@ -106,7 +115,7 @@ async function drainRows(){
   if(!t){rowActions.shift();replayRows();render();continue;}
   try{const data=await api({action:op.action,id:op.id,expectedStatus:t.status});rowActions.shift();accept(data);report('');}
   catch(error){rowActions=[];replayRows();render();await loadBoard();report(error.message,error.status);break;}
- }}finally{rowSending=false;render();}
+ }}finally{rowSending=false;}
 }
 async function loadBoard(initialLoad=false){
  if(!driverName)return;
@@ -135,6 +144,7 @@ function timing(t){
  return '';
 }
 const rowNodes=new Map();
+let activeClocks=[];
 function makeRow(t){
   const row=el('li','row '+t.status+(t.tagged?' tagged':''));
   const main=el('button','row-main');main.type='button';main.dataset.id=t.id;main.dataset.action='advance';main.disabled=busy||!loaded;
@@ -147,7 +157,7 @@ function makeRow(t){
   if(isAdmin){const remove=el('button','delete-button','×');remove.type='button';remove.dataset.id=t.id;remove.dataset.action='delete';remove.disabled=busy||!loaded||rowActions.length>0;remove.setAttribute('aria-label',`Delete trailer ${t.id}`);remove.title='Delete trailer';actions.append(remove);}
   if(t.assignedTo)info.append(el('span','note',`Driver: ${t.assignedTo}`));
   row.append(main,actions);
-  if(t.status!=='waiting'||t._pending){const time=el('span','timing',timing(t));time.dataset.id=t.id;row.append(time);}
+  if(t.status!=='waiting'||t._pending){const time=el('span','timing',timing(t));time.dataset.id=t.id;row.append(time);if(t.status==='in-progress'&&!t._pending)row.moveClock={node:time,trailer:t};}
   row.dataset.id=t.id;return row;
 }
 function render(focusId,focusAction){
@@ -157,7 +167,7 @@ function render(focusId,focusAction){
  const visibleIds=new Set(visible.map(t=>t.id));
  for(const row of [...list.children])if(!visibleIds.has(row.dataset.id))row.remove();
  const allIds=new Set(trailers.map(t=>t.id));for(const id of rowNodes.keys())if(!allIds.has(id))rowNodes.delete(id);
- let position=0;
+ activeClocks=[];let position=0;
  for(const t of visible){
   const signature=JSON.stringify([t,isAdmin,loaded]);
   let cached=rowNodes.get(t.id);
@@ -165,12 +175,13 @@ function render(focusId,focusAction){
    const row=makeRow(t);if(cached?.row.parentNode===list)cached.row.replaceWith(row);
    cached={row,signature};rowNodes.set(t.id,cached);
   }
-  const row=cached.row;
+  const row=cached.row;if(row.moveClock)activeClocks.push(row.moveClock);
   for(const button of row.querySelectorAll('button'))button.disabled=busy||!loaded||(button.dataset.action==='delete'&&rowActions.length>0);
   if(list.children[position]!==row)list.insertBefore(row,list.children[position]||null);
   position++;
 
  }
+ updateDriverButton();
  document.getElementById('empty').hidden=visible.length>0||!loaded;
  document.getElementById('empty').textContent=trailers.length?'No trailers match. Try another search or filter.':'No trailers yet. Add a trailer to start your shuttle list.';
  const reset=document.getElementById('reset-list');reset.hidden=!isAdmin;reset.disabled=busy||rowActions.length>0||!loaded||trailers.length===0;
@@ -227,7 +238,7 @@ document.getElementById('undo-delete').addEventListener('click',async()=>{expire
 document.getElementById('reset-list').addEventListener('click',()=>{if(trailers.length)requestDeletion(null);});
 document.getElementById('search').addEventListener('input',()=>render());document.getElementById('filter').addEventListener('change',()=>render());
 document.getElementById('retry-load').addEventListener('click',()=>loadBoard(true));
-setInterval(()=>{if(document.hidden)return;const byId=new Map(trailers.map(t=>[t.id,t]));for(const n of list.querySelectorAll('.timing')){const t=byId.get(n.dataset.id);if(t?.status==='in-progress')n.textContent=timing(t);}},1000);
+setInterval(()=>{if(!document.hidden)for(const clock of activeClocks)clock.node.textContent=timing(clock.trailer);},1000);
 setInterval(()=>{if(!document.hidden&&!dialog.open)loadBoard();},10000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){expireUndo();loadBoard();}});
 const adminDialog=document.getElementById('admin-dialog'),adminInput=document.getElementById('admin-code');
@@ -247,7 +258,8 @@ document.getElementById('admin-form').addEventListener('submit',async event=>{
  catch(error){adminKey=previous;document.getElementById('admin-error').textContent=error.message;}
  finally{button.disabled=false;}
 });
-driverDialog.showModal();driverInput.focus();
+updateDriverButton();
+if(driverName)loadBoard(true);else askDriver();
 
 </script>
 </body>
